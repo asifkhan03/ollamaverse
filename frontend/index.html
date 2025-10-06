@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AIOps Ollama Desktop Chat</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h2>🤖 AIOps Ollama</h2>
+      </div>
+
+      <div class="model-select">
+        <label for="modelSelect">Model</label>
+        <select id="modelSelect">
+          <option value="llama3">llama3</option>
+          <option value="codellama">codellama</option>
+          <option value="mistral">mistral</option>
+          <option value="tinyllama">tinyllama</option>
+        </select>
+      </div>
+
+      <button id="logoutBtn" class="logout-btn">Logout</button>
+    </aside>
+
+    <!-- Main Chat Area -->
+    <main class="chat-container">
+      <div id="chatBox" class="chat-box">
+        <div class="message ai-message">👋 Hello! I’m your AIOps Ollama assistant. Select a model and start chatting.</div>
+      </div>
+
+      <!-- Input Area -->
+      <div class="chat-input-area">
+        <textarea id="userInput" placeholder="Type your message..." rows="2"></textarea>
+        <button id="sendBtn">Send</button>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const chatBox = document.getElementById("chatBox");
+    const sendBtn = document.getElementById("sendBtn");
+    const userInput = document.getElementById("userInput");
+    const modelSelect = document.getElementById("modelSelect");
+    const logoutBtn = document.getElementById("logoutBtn");
+
+    const token = localStorage.getItem("token");
+    if (!token) window.location.href = "login.html";
+
+    logoutBtn.addEventListener("click", () => {
+      localStorage.removeItem("token");
+      window.location.href = "login.html";
+    });
+
+    function addMessage(content, isUser = false) {
+      const msg = document.createElement("div");
+      msg.classList.add("message", isUser ? "user-message" : "ai-message");
+      msg.textContent = content;
+      chatBox.appendChild(msg);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    async function sendMessage() {
+      const prompt = userInput.value.trim();
+      const model = modelSelect.value;
+      if (!prompt) return;
+      addMessage(prompt, true);
+      userInput.value = "";
+
+      try {
+        const res = await fetch("http://localhost:5001/ollama/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token, model, prompt }),
+        });
+
+        const data = await res.json();
+        if (data.response) addMessage(data.response, false);
+        else addMessage("⚠️ " + (data.error || "No response from Ollama"), false);
+      } catch {
+        addMessage("⚠️ Network error. Backend might be offline.", false);
+      }
+    }
+
+    sendBtn.addEventListener("click", sendMessage);
+    userInput.addEventListener("keypress", (e) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+  </script>
+</body>
+</html>
