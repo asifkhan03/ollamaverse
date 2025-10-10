@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ollamaverse-py-backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: ollamaverse-py-backend
+  template:
+    metadata:
+      labels:
+        app: ollamaverse-py-backend
+    spec:
+      containers:
+        - name: ollamaverse-py-backend
+          image: 976193257685.dkr.ecr.ap-south-1.amazonaws.com/ollamaverse-py-backend:1.0
+          ports:
+            - containerPort: 5001
+

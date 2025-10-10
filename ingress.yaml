@@ -1,0 +1,90 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ollamaverse-ingress
+  namespace: aiops
+  annotations:
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/subnets: subnet-01c4e1f0030c41d14,subnet-0676b3c3d8a01d979,subnet-07be6dad2f533444a
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":80},{"HTTPS":443}]'
+    alb.ingress.kubernetes.io/healthcheck-path: /
+    alb.ingress.kubernetes.io/healthcheck-port: "80"
+    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:ap-south-1:976193257685:certificate/044c0d59-3c44-4893-8957-ef084947b4da
+spec:
+  ingressClassName: alb
+  rules:
+    - host: asif.asifahmadkhan.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: ollamaverse-frontend-service
+                port:
+                  number: 80
+    - host: api.asifahmadkhan.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: ollamaverse-backend-service
+                port:
+                  number: 5000
+    - host: ollama.asifahmadkhan.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: ollamaverse-py-service
+                port:
+                  number: 5001
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

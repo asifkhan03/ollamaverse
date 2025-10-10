@@ -72,7 +72,7 @@
       userInput.value = "";
 
       try {
-        const res = await fetch("http://localhost:5001/ollama/chat", {
+        const res = await fetch("https://ollama.asifahmadkhan.com/ollama/chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ token, model, prompt }),
