@@ -10,7 +10,6 @@ RUN npm install
 # Copy rest of backend code
 COPY . .
 
-RUN cp .env.example .env
 # Expose API port
 EXPOSE 5000
 

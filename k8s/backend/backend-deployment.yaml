@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: ollamaverse-backend
+  namespace: aiops
 spec:
   replicas: 2
   selector:
@@ -14,8 +15,22 @@ spec:
     spec:
       containers:
         - name: ollamaverse-backend
-          image: 976193257685.dkr.ecr.ap-south-1.amazonaws.com/ollamaverse-backend:1.0
+          image: 976193257685.dkr.ecr.ap-south-1.amazonaws.com/ollamaverse-backend:1.7
           ports:
             - containerPort: 5000
-
-
+          env:
+            - name: PORT
+              value: "5000"
+            - name: DATABASE_URL
+              value: "postgresql://neondb_owner:npg_txel7TsYDRw4@ep-restless-wind-a1n19pli-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require"
+            - name: REDIS_URL
+              value: "redis://redis-service:6379"
+            - name: JWT_SECRET
+              value: "mySuperSecretKey"
+          resources:
+            requests:
+              cpu: "200m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
