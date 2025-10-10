@@ -1,28 +1,24 @@
-
-
-
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: ollamaverse-ingress
-  namespace: kube-system
+  namespace: aiops
   annotations:
-    kubernetes.io/ingress.class: alb
     alb.ingress.kubernetes.io/scheme: internet-facing
     alb.ingress.kubernetes.io/subnets: subnet-01c4e1f0030c41d14,subnet-0676b3c3d8a01d979,subnet-07be6dad2f533444a
     alb.ingress.kubernetes.io/target-type: ip
     alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":80},{"HTTPS":443}]'
     alb.ingress.kubernetes.io/healthcheck-path: /
     alb.ingress.kubernetes.io/healthcheck-port: "80"
-    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:ap-south-1:YOUR_ACCOUNT_ID:certificate/YOUR_CERTIFICATE_ID
+    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:ap-south-1:976193257685:certificate/044c0d59-3c44-4893-8957-ef084947b4da
 spec:
   ingressClassName: alb
   rules:
-    - host: ai.asifahmadkhan.com
+    - host: asif.asifahmadkhan.com
       http:
         paths:
-          - path: /(.*)
-            pathType: ImplementationSpecific
+          - path: /
+            pathType: Prefix
             backend:
               service:
                 name: ollamaverse-frontend-service
@@ -31,8 +27,8 @@ spec:
     - host: api.asifahmadkhan.com
       http:
         paths:
-          - path: /(.*)
-            pathType: ImplementationSpecific
+          - path: /
+            pathType: Prefix
             backend:
               service:
                 name: ollamaverse-backend-service
@@ -41,8 +37,8 @@ spec:
     - host: ollama.asifahmadkhan.com
       http:
         paths:
-          - path: /(.*)
-            pathType: ImplementationSpecific
+          - path: /
+            pathType: Prefix
             backend:
               service:
                 name: ollamaverse-py-service
@@ -92,62 +88,3 @@ spec:
 
 
 
-
-
-# apiVersion: networking.k8s.io/v1
-# kind: Ingress
-# metadata:
-#   name: ollamaverse-ingress
-#   namespace: default
-#   annotations:
-#     kubernetes.io/ingress.class: nginx
-#     nginx.ingress.kubernetes.io/rewrite-target: /
-#     nginx.ingress.kubernetes.io/ssl-redirect: "true"
-#     nginx.ingress.kubernetes.io/proxy-body-size: "50m"
-#     nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
-#     nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
-#     nginx.ingress.kubernetes.io/use-regex: "true"
-#     cert-manager.io/cluster-issuer: letsencrypt-prod
-# spec:
-#   ingressClassName: nginx
-#   tls:
-#     - hosts:
-#         - ai.asifahmadkhan.com
-#       secretName: ai-asifahmadkhan-tls
-#     - hosts:
-#         - api.asifahmadkhan.com
-#       secretName: api-asifahmadkhan-tls
-#     - hosts:
-#         - ollama.asifahmadkhan.com
-#       secretName: ollama.asifahmadkhan-tls
-#   rules:
-#     - host: ai.asifahmadkhan.com
-#       http:
-#         paths:
-#           - path: /(.*)
-#             pathType: ImplementationSpecific
-#             backend:
-#               service:
-#                 name: ollamaverse-frontend-service
-#                 port:
-#                   number: 80
-#     - host: api.asifahmadkhan.com
-#       http:
-#         paths:
-#           - path: /(.*)
-#             pathType: ImplementationSpecific
-#             backend:
-#               service:
-#                 name: ollamaverse-backend-service
-#                 port:
-#                   number: 5000
-#     - host: ollama.asifahmadkhan.com
-#       http:
-#         paths:
-#           - path: /(.*)
-#             pathType: ImplementationSpecific
-#             backend:
-#               service:
-#                 name: ollamaverse-py-service
-#                 port:
-#                   number: 5001
