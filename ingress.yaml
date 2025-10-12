@@ -14,7 +14,7 @@ metadata:
 spec:
   ingressClassName: alb
   rules:
-    - host: asif.asifahmadkhan.com
+    - host: aiops.asifahmadkhan.com
       http:
         paths:
           - path: /

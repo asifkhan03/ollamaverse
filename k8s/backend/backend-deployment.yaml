@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: ollamaverse-backend
-          image: 976193257685.dkr.ecr.ap-south-1.amazonaws.com/ollamaverse-backend:1.7
+          image: 976193257685.dkr.ecr.ap-south-1.amazonaws.com/ollamaverse-backend:1.9
           ports:
             - containerPort: 5000
           env:

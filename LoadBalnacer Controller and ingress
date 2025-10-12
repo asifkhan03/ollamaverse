@@ -1,3 +1,9 @@
+To delete any pods/service from any namsepace we should write
+kubectl delete deployment ollamaverse-frontend -n default
+kubectl delete service ollamaverse-frontend -n default
+not the Pods or service name.
+
+
 {
   "Version": "2012-10-17",
   "Statement": [
@@ -74,9 +80,18 @@ aws ecr get-login-password --region ap-south-1 | docker login --username AWS --p
 
 
 
-
-
-
-
-
   
+docker build -t ollamaverse-backend:1.7 .
+docker tag ollamaverse-backend:1.2 976193257685.dkr.ecr.ap-south-1.amazonaws.com/ollamaverse-backend:1.7
+docker push 976193257685.dkr.ecr.ap-south-1.amazonaws.com/ollamaverse-backend:1.7
+
+
+
+docker build -t ollamaverse-py-backend:1.7 .
+docker tag ollamaverse-py-backend:1.7 976193257685.dkr.ecr.ap-south-1.amazonaws.com/ollamaverse-py-backend:1.7
+docker push 976193257685.dkr.ecr.ap-south-1.amazonaws.com/ollamaverse-py-backend:1.7
+  
+
+docker build -t ollamaverse-frontend:1.1 .
+docker tag ollamaverse-frontend:1.1 976193257685.dkr.ecr.ap-south-1.amazonaws.com/ollamaverse-frontend:1.1
+docker push 976193257685.dkr.ecr.ap-south-1.amazonaws.com/ollamaverse-frontend:1.1
