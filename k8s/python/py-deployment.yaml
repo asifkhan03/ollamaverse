@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: ollamaverse-py-backend
-          image: 976193257685.dkr.ecr.ap-south-1.amazonaws.com/ollamaverse-py-backend:1.11
+          image: 976193257685.dkr.ecr.ap-south-1.amazonaws.com/ollamaverse-py-backend:1.12
           ports:
             - containerPort: 5001
           env:

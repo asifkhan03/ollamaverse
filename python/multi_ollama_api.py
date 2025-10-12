@@ -76,7 +76,7 @@ def chat_with_model():
     # Use different payload and endpoint for smollm2
     if model == "smollm2":
         api_endpoint = f"{model_url}/api/generate"
-        payload = {"prompt": prompt}  # simple prompt
+        payload = {"model": "smollm2:latest", "prompt": prompt}
     else:
         api_endpoint = f"{model_url}/api/chat"
         payload = {"model": model, "messages": [{"role": "user", "content": prompt}]}
