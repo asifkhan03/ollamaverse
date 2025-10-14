@@ -17,8 +17,8 @@
       <div class="model-select">
         <label for="modelSelect">Model</label>
         <select id="modelSelect">
-          <option value="smollm2">smollm2</option>
-          <option value="tinyllama">tinyllama</option>
+          <option value="smollm2">SmolLM2 (135M)</option>
+          <option value="tinyllama">TinyLlama</option>
         </select>
       </div>
 
@@ -66,19 +66,24 @@
       const prompt = userInput.value.trim();
       const model = modelSelect.value;
       if (!prompt) return;
-      addMessage(prompt, true);
+      
+      addMessage(`[${model.toUpperCase()}] ${prompt}`, true);
       userInput.value = "";
 
       try {
-        const res = await fetch("https://ollama.asifahmadkhan.com/ollama/chat", {
+        const res = await fetch("http://localhost:8080/ollama/ask", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ token, model, prompt }),
+          body: JSON.stringify({ token, prompt, model }),
         });
 
         const data = await res.json();
-        if (data.response) addMessage(data.response, false);
-        else addMessage("⚠️ " + (data.error || "No response from Ollama"), false);
+        if (data.response) {
+          const responseModel = data.model || model;
+          addMessage(`[${responseModel.toUpperCase()}]: ${data.response}`, false);
+        } else {
+          addMessage("⚠️ " + (data.error || "No response from Ollama"), false);
+        }
       } catch {
         addMessage("⚠️ Network error. Backend might be offline.", false);
       }
