@@ -1,13 +1,9 @@
+---
 apiVersion: v1
-kind: Service
+kind: Secret
 metadata:
-  name: ollamaverse-backend-service
+  name: backend-secret
   namespace: aiops
-spec:
-  type: ClusterIP
-  selector:
-    app: ollamaverse-backend
-  ports:
-    - name: http
-      port: 5000
-      targetPort: 5000
+type: Opaque
+data:
+  jwt-secret: bXlTdXBlclNlY3JldEtleQ== # base64 for "mySuperSecretKey"

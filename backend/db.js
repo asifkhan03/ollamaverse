@@ -1,24 +1,29 @@
-import pkg from "pg";
+import { MongoClient } from "mongodb";
 import dotenv from "dotenv";
 import logger from "./logger.js";
 
 dotenv.config();
 
-const { Pool } = pkg;
+const uri = process.env.DATABASE_URL || "mongodb://mongouser:mongopass@mongodb-service:27017/mydatabase";
 
-// ---------- PostgreSQL Connection ----------
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false },   // ✅ Required for Neon
-  max: 5,                               // Limit concurrent connections
-  keepAlive: true,                      // ✅ Keeps idle connections alive
-  connectionTimeoutMillis: 10000,       // Wait max 10s to connect
-  idleTimeoutMillis: 0,                 // Don't auto-close idle clients
+const client = new MongoClient(uri, { 
+  serverSelectionTimeoutMS: 5000 // wait max 5 seconds
 });
 
-// Handle unexpected disconnects gracefully
-pool.on("error", (err) => {
-  logger.error(`❌ Unexpected Postgres error: ${err.message}`);
-});
+let db;
 
-export default pool;
+export const connectDB = async () => {
+  try {
+    await client.connect();
+    db = client.db(); // Use database from URI
+    logger.info("✅ Connected to MongoDB");
+  } catch (err) {
+    logger.error("❌ MongoDB connection failed:", err.message);
+    process.exit(1);
+  }
+};
+
+export const getDB = () => {
+  if (!db) throw new Error("Database not initialized");
+  return db;
+};

@@ -1,0 +1,29 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: kubernetes-dashboard-ingress
+  namespace: kubernetes-dashboard
+  annotations:
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/subnets: subnet-01c4e1f0030c41d14,subnet-0676b3c3d8a01d979,subnet-07be6dad2f533444a
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:ap-south-1:976193257685:certificate/044c0d59-3c44-4893-8957-ef084947b4da
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}]'
+    alb.ingress.kubernetes.io/ssl-redirect: '443'
+    alb.ingress.kubernetes.io/backend-protocol: 'HTTPS'
+    alb.ingress.kubernetes.io/healthcheck-path: /dashboard/
+    external-dns.alpha.kubernetes.io/hostname: eks.asifahmadkhan.com
+spec:
+  ingressClassName: alb
+  rules:
+    - host: eks.asifahmadkhan.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: kubernetes-dashboard
+                port:
+                  number: 443
+
