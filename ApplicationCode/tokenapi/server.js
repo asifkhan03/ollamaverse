@@ -35,12 +35,7 @@ app.use(helmet({
 // CORS configuration
 app.use(cors({
   origin: [
-    'http://localhost:3000',
-    'http://0.0.0.0:3000',
-    'http://127.0.0.1:3000',
-    'http://localhost:8080',
-    'http://0.0.0.0:8080',
-    'http://127.0.0.1:8080',
+    '*',
     process.env.FRONTEND_URL
   ].filter(Boolean),
   credentials: true,
@@ -57,7 +52,7 @@ app.use((req, res, next) => {
       method: req.method,
       origin: origin,
       requestId: req.id,
-      allowed: ['http://localhost:3000', 'http://0.0.0.0:3000', 'http://127.0.0.1:3000', 'http://localhost:8080', 'http://0.0.0.0:8080', 'http://127.0.0.1:8080'].includes(origin)
+      allowed: ['*'].includes(origin)
     });
   }
   next();

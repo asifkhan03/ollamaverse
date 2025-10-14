@@ -24,7 +24,7 @@ router.post("/ask", async (req, res) => {
     logger.debug("Token verified for ollama request", { userId: decoded.id, model });
 
     // Call Python service with model parameter
-    const pythonUrl = process.env.PYTHON_SERVICE || "http://localhost:8000";
+    const pythonUrl = process.env.PYTHON_SERVICE || "https://ollama.asifahmadkhan.com";
     logger.debug("Calling Python service", { url: pythonUrl, model });
     
     const response = await axios.post(`${pythonUrl}/ask`, { 

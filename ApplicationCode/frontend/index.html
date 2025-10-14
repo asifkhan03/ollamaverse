@@ -76,7 +76,7 @@
     if (!token) window.location.href = "login.html";
 
     // Token API endpoints
-    const TOKEN_API_BASE = "http://localhost:9000";
+    const TOKEN_API_BASE = "https://tokenapi.asifahmadkhan.com"; // Replace with your actual token API base URL
 
     logoutBtn.addEventListener("click", () => {
       localStorage.removeItem("token");
@@ -250,7 +250,7 @@
             </div>
             <div class="usage-example">
               <h4>Usage Example:</h4>
-              <pre>curl -X POST http://localhost:9000/v1/chat/completions \\
+              <pre>curl -X POST https://tokenapi.asifahmadkhan.com/v1/chat/completions \\
   -H "Authorization: Bearer ${tokenData.value}" \\
   -H "Content-Type: application/json" \\
   -d '{"model": "smollm2", "messages": [{"role": "user", "content": "Hello!"}]}'</pre>
@@ -318,7 +318,7 @@
       userInput.value = "";
 
       try {
-        const res = await fetch("http://localhost:8080/ollama/ask", {
+        const res = await fetch("https://api.asifahmadkhan.com/ollama/ask", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ token, prompt, model }),
