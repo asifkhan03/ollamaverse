@@ -22,6 +22,25 @@
         </select>
       </div>
 
+      <!-- Token Management Section -->
+      <div class="token-section">
+        <div class="section-header">
+          <h3>🔑 API Tokens</h3>
+          <button id="toggleTokens" class="toggle-btn">Show</button>
+        </div>
+        
+        <div id="tokenPanel" class="token-panel hidden">
+          <div class="token-actions">
+            <button id="generateTokenBtn" class="generate-btn">+ Generate Token</button>
+            <button id="refreshTokensBtn" class="refresh-btn">🔄</button>
+          </div>
+          
+          <div id="tokenList" class="token-list">
+            <div class="loading">Loading tokens...</div>
+          </div>
+        </div>
+      </div>
+
       <button id="logoutBtn" class="logout-btn">Logout</button>
     </aside>
 
@@ -45,14 +64,242 @@
     const userInput = document.getElementById("userInput");
     const modelSelect = document.getElementById("modelSelect");
     const logoutBtn = document.getElementById("logoutBtn");
+    
+    // Token management elements
+    const toggleTokensBtn = document.getElementById("toggleTokens");
+    const tokenPanel = document.getElementById("tokenPanel");
+    const generateTokenBtn = document.getElementById("generateTokenBtn");
+    const refreshTokensBtn = document.getElementById("refreshTokensBtn");
+    const tokenList = document.getElementById("tokenList");
 
     const token = localStorage.getItem("token");
     if (!token) window.location.href = "login.html";
+
+    // Token API endpoints
+    const TOKEN_API_BASE = "http://localhost:9000";
 
     logoutBtn.addEventListener("click", () => {
       localStorage.removeItem("token");
       window.location.href = "login.html";
     });
+
+    // Token Management Functions
+    toggleTokensBtn.addEventListener("click", () => {
+      const isHidden = tokenPanel.classList.contains("hidden");
+      if (isHidden) {
+        tokenPanel.classList.remove("hidden");
+        toggleTokensBtn.textContent = "Hide";
+        loadTokens();
+      } else {
+        tokenPanel.classList.add("hidden");
+        toggleTokensBtn.textContent = "Show";
+      }
+    });
+
+    generateTokenBtn.addEventListener("click", showGenerateTokenModal);
+    refreshTokensBtn.addEventListener("click", loadTokens);
+
+    async function loadTokens() {
+      try {
+        const response = await fetch(`${TOKEN_API_BASE}/tokens/list`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to load tokens');
+        }
+
+        const data = await response.json();
+        displayTokens(data.tokens);
+      } catch (error) {
+        console.error('Error loading tokens:', error);
+        tokenList.innerHTML = '<div class="error">Failed to load tokens</div>';
+      }
+    }
+
+    function displayTokens(tokens) {
+      if (tokens.length === 0) {
+        tokenList.innerHTML = '<div class="no-tokens">No API tokens yet. Generate one to get started!</div>';
+        return;
+      }
+
+      tokenList.innerHTML = tokens.map(token => `
+        <div class="token-item">
+          <div class="token-header">
+            <span class="token-name">${token.name}</span>
+            <button class="revoke-btn" onclick="revokeToken('${token.id}', '${token.name}')">❌</button>
+          </div>
+          <div class="token-details">
+            <div class="token-prefix">${token.prefix}</div>
+            <div class="token-info">
+              <span class="usage">Used: ${token.totalRequests || 0}x</span>
+              ${token.lastUsed ? `<span class="last-used">Last: ${new Date(token.lastUsed).toLocaleDateString()}</span>` : ''}
+            </div>
+            <div class="token-scopes">
+              ${token.scopes.map(scope => `<span class="scope-tag">${scope}</span>`).join('')}
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function showGenerateTokenModal() {
+      const modal = document.createElement('div');
+      modal.className = 'modal-overlay';
+      modal.innerHTML = `
+        <div class="modal">
+          <div class="modal-header">
+            <h3>Generate API Token</h3>
+            <button class="close-btn" onclick="this.closest('.modal-overlay').remove()">×</button>
+          </div>
+          <div class="modal-body">
+            <div class="form-group">
+              <label for="tokenName">Token Name</label>
+              <input type="text" id="tokenName" placeholder="e.g., My Bot Token" required>
+            </div>
+            <div class="form-group">
+              <label for="tokenExpiry">Expires In</label>
+              <select id="tokenExpiry">
+                <option value="30">30 days</option>
+                <option value="90">90 days</option>
+                <option value="365" selected>1 year</option>
+                <option value="">Never</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Scopes</label>
+              <div class="checkbox-group">
+                <label><input type="checkbox" name="scope" value="chat" checked> Chat API</label>
+                <label><input type="checkbox" name="scope" value="models" checked> Model Access</label>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="cancel-btn" onclick="this.closest('.modal-overlay').remove()">Cancel</button>
+            <button class="generate-btn" onclick="generateToken()">Generate Token</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+    }
+
+    async function generateToken() {
+      const modal = document.querySelector('.modal-overlay');
+      const name = document.getElementById('tokenName').value.trim();
+      const expiryDays = document.getElementById('tokenExpiry').value;
+      const scopes = Array.from(document.querySelectorAll('input[name="scope"]:checked')).map(cb => cb.value);
+
+      if (!name) {
+        alert('Please enter a token name');
+        return;
+      }
+
+      if (scopes.length === 0) {
+        alert('Please select at least one scope');
+        return;
+      }
+
+      try {
+        const response = await fetch(`${TOKEN_API_BASE}/tokens/generate`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            name,
+            scopes,
+            expiryDays: expiryDays ? parseInt(expiryDays) : null
+          })
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || 'Failed to generate token');
+        }
+
+        const data = await response.json();
+        modal.remove();
+        showTokenResult(data.token);
+        loadTokens();
+      } catch (error) {
+        console.error('Error generating token:', error);
+        alert('Failed to generate token: ' + error.message);
+      }
+    }
+
+    function showTokenResult(tokenData) {
+      const modal = document.createElement('div');
+      modal.className = 'modal-overlay';
+      modal.innerHTML = `
+        <div class="modal">
+          <div class="modal-header">
+            <h3>🎉 Token Generated!</h3>
+          </div>
+          <div class="modal-body">
+            <p class="warning">⚠️ Save this token securely. It won't be shown again!</p>
+            <div class="token-result">
+              <label>Your API Token:</label>
+              <div class="token-value">
+                <input type="text" value="${tokenData.value}" readonly id="generatedToken">
+                <button onclick="copyToken()" class="copy-btn">📋 Copy</button>
+              </div>
+            </div>
+            <div class="usage-example">
+              <h4>Usage Example:</h4>
+              <pre>curl -X POST http://localhost:9000/v1/chat/completions \\
+  -H "Authorization: Bearer ${tokenData.value}" \\
+  -H "Content-Type: application/json" \\
+  -d '{"model": "smollm2", "messages": [{"role": "user", "content": "Hello!"}]}'</pre>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="close-btn" onclick="this.closest('.modal-overlay').remove()">Close</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+    }
+
+    function copyToken() {
+      const tokenInput = document.getElementById('generatedToken');
+      tokenInput.select();
+      document.execCommand('copy');
+      
+      const copyBtn = document.querySelector('.copy-btn');
+      copyBtn.textContent = '✅ Copied!';
+      setTimeout(() => {
+        copyBtn.textContent = '📋 Copy';
+      }, 2000);
+    }
+
+    async function revokeToken(tokenId, tokenName) {
+      if (!confirm(`Are you sure you want to revoke "${tokenName}"? This action cannot be undone.`)) {
+        return;
+      }
+
+      try {
+        const response = await fetch(`${TOKEN_API_BASE}/tokens/${tokenId}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to revoke token');
+        }
+
+        loadTokens(); // Refresh the list
+      } catch (error) {
+        console.error('Error revoking token:', error);
+        alert('Failed to revoke token: ' + error.message);
+      }
+    }
 
     function addMessage(content, isUser = false) {
       const msg = document.createElement("div");

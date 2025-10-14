@@ -1,7 +1,7 @@
 # =========================
 # Node.js (Backend)
 # =========================
-backend/node_modules/
+node_modules
 backend/package-lock.json
 npm-debug.log*
 yarn-debug.log*
