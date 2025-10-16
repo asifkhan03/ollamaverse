@@ -13,7 +13,15 @@ dotenv.config();
 const app = express();
 
 // -------------------- Middleware --------------------
-app.use(cors());
+// CORS configuration - Allow all origins
+app.use(cors({
+  origin: '*',
+  credentials: false,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  exposedHeaders: ['Content-Length', 'Content-Type']
+}));
+
 app.use(bodyParser.json());
 app.use(
   morgan("combined", { stream: { write: (msg) => logger.info(msg.trim()) } })

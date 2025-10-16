@@ -33,7 +33,7 @@ spec:
               service:
                 name: ollamaverse-backend-service
                 port:
-                  number: 5000
+                  number: 8080
     - host: ollama.asifahmadkhan.com
       http:
         paths:
@@ -43,7 +43,7 @@ spec:
               service:
                 name: ollamaverse-py-service
                 port:
-                  number: 5001
+                  number: 8000
 
 
 

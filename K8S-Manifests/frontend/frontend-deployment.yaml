@@ -4,7 +4,7 @@ metadata:
   name: ollamaverse-frontend
   namespace: aiops
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: ollamaverse-frontend
@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: ollamaverse-frontend
-          image: 976193257685.dkr.ecr.ap-south-1.amazonaws.com/ollamaverse-frontend:1.1
+          image: 976193257685.dkr.ecr.ap-south-1.amazonaws.com/ollamaverse-frontend:3.3
           ports:
             - containerPort: 80
 
