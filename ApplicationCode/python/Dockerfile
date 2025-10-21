@@ -13,7 +13,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Expose Ollama API port
-EXPOSE 5001
+EXPOSE 8000
 
 # Run the Ollama API Python app
 CMD ["python", "multi_ollama_api.py"]

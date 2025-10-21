@@ -44,47 +44,15 @@ spec:
                 name: ollamaverse-py-service
                 port:
                   number: 8000
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    - host: tokenapi.asifahmadkhan.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: ollamaverse-tokenapi-service
+                port:
+                  number: 9000
 
 

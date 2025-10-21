@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ollamaverse-tokenapi
+  namespace: aiops
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ollamaverse-tokenapi
+  template:
+    metadata:
+      labels:
+        app: ollamaverse-tokenapi
+    spec:
+      containers:
+        - name: ollamaverse-tokenapi
+          image: 976193257685.dkr.ecr.ap-south-1.amazonaws.com/ollamaverse-tokenapi:3.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 9000
+          resources:
+            requests:
+              cpu: "200m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
