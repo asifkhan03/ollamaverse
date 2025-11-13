@@ -20,6 +20,13 @@ spec:
           image: 976193257685.dkr.ecr.ap-south-1.amazonaws.com/ollamaverse-py-backend:3.8
           ports:
             - containerPort: 8000
+          resources:
+            requests:
+              cpu: "300m"
+              memory: "256Mi"
+            limits:
+              cpu: "1000m"
+              memory: "512Mi"
 
           # readinessProbe:
           #   httpGet:
