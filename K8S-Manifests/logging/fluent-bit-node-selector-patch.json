@@ -1,0 +1,16 @@
+{
+  "spec": {
+    "template": {
+      "spec": {
+        "nodeSelector": {
+          "logging": "enabled"
+        },
+        "tolerations": [
+          {
+            "operator": "Exists"
+          }
+        ]
+      }
+    }
+  }
+}

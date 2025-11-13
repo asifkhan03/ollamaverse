@@ -5,7 +5,7 @@ metadata:
   namespace: aiops
   annotations:
     alb.ingress.kubernetes.io/scheme: internet-facing
-    alb.ingress.kubernetes.io/subnets: subnet-01c4e1f0030c41d14,subnet-0676b3c3d8a01d979,subnet-07be6dad2f533444a
+    alb.ingress.kubernetes.io/subnets: subnet-0a77b8e02b816936d, subnet-053235b7d23c6c5b9, subnet-0977be60708f90d99
     alb.ingress.kubernetes.io/target-type: ip
     alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":80},{"HTTPS":443}]'
     alb.ingress.kubernetes.io/healthcheck-path: /

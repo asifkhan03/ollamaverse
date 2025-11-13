@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: custom-logger
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      apps: custom-logger
+  template:
+    metadata:
+      labels:
+        apps: custom-logger
+    spec:
+      containers:
+      - name: logger
+        image: 976193257685.dkr.ecr.ap-south-1.amazonaws.com/ollamaverse-loadtest:1.0
+        imagePullPolicy: Always
+        resources:
+          limits:
+            cpu: "100m"
+            memory: "128Mi"
+          requests:
+            cpu: "50m"
+            memory: "64Mi"
+
