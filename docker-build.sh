@@ -17,8 +17,8 @@ docker push 976193257685.dkr.ecr.ap-south-1.amazonaws.com/ollamaverse-py-backend
 
 
 cd ApplicationCode/tokenapi
-docker buildx build --platform linux/arm64 -t 976193257685.dkr.ecr.ap-south-1.amazonaws.com/ollamaverse-tokenapi:3.2 .
-docker push 976193257685.dkr.ecr.ap-south-1.amazonaws.com/ollamaverse-tokenapi:3.2
+docker buildx build --platform linux/arm64 -t 976193257685.dkr.ecr.ap-south-1.amazonaws.com/ollamaverse-tokenapi:3.3 .
+docker push 976193257685.dkr.ecr.ap-south-1.amazonaws.com/ollamaverse-tokenapi:3.3
 
 docker buildx build --platform linux/arm64 -t 976193257685.dkr.ecr.ap-south-1.amazonaws.com/ollamaverse-loadtest:1.0 .
 docker push 976193257685.dkr.ecr.ap-south-1.amazonaws.com/ollamaverse-loadtest:1.0
