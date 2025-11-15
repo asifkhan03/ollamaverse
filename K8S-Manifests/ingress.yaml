@@ -24,6 +24,14 @@ spec:
                 name: ollamaverse-frontend-service
                 port:
                   number: 80
+          - path: /load-test
+            pathType: Prefix
+            backend:
+              service:
+                name: loadtest-viewer
+                port:
+                  number: 80
+
     - host: api.asifahmadkhan.com
       http:
         paths:
