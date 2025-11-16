@@ -2,128 +2,306 @@ package main
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
+	"html/template"
 	"log"
 	"net/http"
 	"os"
 	"sort"
 	"strings"
-	"text/template"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+
+	"github.com/redis/go-redis/v9"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
+)
+
+var (
+	s3Client   *s3.Client
+	s3Presign  *s3.PresignClient
+	s3Bucket   string
+	mongoURI   string
+	redisURL   string
+	mongoClient *mongo.Client
+	redisClient *redis.Client
 )
 
 type Report struct {
+	Name string
+	URL  string
+	Date time.Time
+}
+
+type SimpleReportView struct {
 	Name string
 	URL  string
 	Date string
 }
 
 func main() {
-	bucketName := os.Getenv("S3_BUCKET")
+
+	s3Bucket = os.Getenv("S3_BUCKET")
 	region := os.Getenv("AWS_REGION")
-
-	if bucketName == "" || region == "" {
-		log.Fatal("S3_BUCKET and AWS_REGION environment variables are required")
-	}
-
-	// Load AWS config
-	cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion(region))
-	if err != nil {
-		log.Fatalf("Unable to load AWS SDK config: %v", err)
-	}
-
-	s3Client := s3.NewFromConfig(cfg)
-	presigner := s3.NewPresignClient(s3Client)
-
-	http.HandleFunc("/load-test", func(w http.ResponseWriter, r *http.Request) {
-		reports, err := listReports(s3Client, presigner, bucketName)
-		if err != nil {
-			http.Error(w, "Failed to list reports: "+err.Error(), http.StatusInternalServerError)
-			return
-		}
-		renderReports(w, reports)
-	})
-
+	mongoURI = os.Getenv("DATABASE_URL")
+	redisURL = os.Getenv("REDIS_URL")
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
 	}
-	log.Printf("Server running on port %s...", port)
-	http.ListenAndServe(":"+port, nil)
+
+	// AWS Init
+	if region != "" {
+		cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion(region))
+		if err == nil {
+			s3Client = s3.NewFromConfig(cfg)
+			s3Presign = s3.NewPresignClient(s3Client)
+			log.Println("AWS S3 initialized")
+		}
+	}
+
+	// Mongo Init
+	if mongoURI != "" {
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+
+		client, err := mongo.Connect(ctx, options.Client().ApplyURI(mongoURI))
+		if err == nil && client.Ping(ctx, nil) == nil {
+			mongoClient = client
+			log.Println("Mongo connected")
+		}
+	}
+
+	// Redis Init
+	if redisURL != "" {
+		opt, err := redis.ParseURL(redisURL)
+		if err != nil {
+			opt = &redis.Options{Addr: redisURL}
+		}
+		rdb := redis.NewClient(opt)
+		if rdb.Ping(context.Background()).Err() == nil {
+			redisClient = rdb
+			log.Println("Redis connected")
+		}
+	}
+
+	// Routes
+	http.HandleFunc("/load-test", loadTestHandler)
+	http.HandleFunc("/db-data", dbDataHandler)
+	http.HandleFunc("/db-data/collection", dbCollectionHandler)
+	http.HandleFunc("/redis-data", redisDataHandler)
+	http.HandleFunc("/redis-data/key", redisKeyHandler)
+
+	log.Printf("Server running on %s", port)
+	log.Fatal(http.ListenAndServe(":"+port, nil))
 }
 
-func listReports(s3Client *s3.Client, presigner *s3.PresignClient, bucket string) ([]Report, error) {
-	ctx := context.Background()
+/////////////////////////////////////////////////////////////
+// S3 REPORT VIEWER
+/////////////////////////////////////////////////////////////
+
+func loadTestHandler(w http.ResponseWriter, r *http.Request) {
+	if s3Client == nil || s3Presign == nil {
+		http.Error(w, "S3 not configured", 500)
+		return
+	}
+
+	reports, err := listReports(r.Context())
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
+
+	renderReports(w, reports)
+}
+
+func listReports(ctx context.Context) ([]SimpleReportView, error) {
+
 	resp, err := s3Client.ListObjectsV2(ctx, &s3.ListObjectsV2Input{
-		Bucket: aws.String(bucket),
+		Bucket: aws.String(s3Bucket),
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	var reports []Report
-	for _, obj := range resp.Contents {
-		if strings.HasSuffix(*obj.Key, ".html") {
-			// Generate a pre-signed URL valid for 24 hours
-			psURL, err := presigner.PresignGetObject(ctx, &s3.GetObjectInput{
-				Bucket: aws.String(bucket),
-				Key:    obj.Key,
-			}, s3.WithPresignExpires(24*time.Hour))
-			if err != nil {
-				log.Printf("Error creating presigned URL for %s: %v", *obj.Key, err)
-				continue
-			}
+	var items []Report
 
-			reports = append(reports, Report{
-				Name: *obj.Key,
-				URL:  psURL.URL,
-				Date: obj.LastModified.Format("2006-01-02 15:04"),
-			})
+	for _, obj := range resp.Contents {
+
+		if !strings.HasSuffix(*obj.Key, ".html") {
+			continue
+		}
+
+		ps, err := s3Presign.PresignGetObject(
+			ctx,
+			&s3.GetObjectInput{
+				Bucket: aws.String(s3Bucket),
+				Key:    obj.Key,
+			},
+			s3.WithPresignExpires(24*time.Hour),
+		)
+		if err != nil {
+			continue
+		}
+
+		items = append(items, Report{
+			Name: *obj.Key,
+			URL:  ps.URL,
+			Date: aws.ToTime(obj.LastModified),
+		})
+	}
+
+	sort.Slice(items, func(i, j int) bool {
+		return items[i].Date.After(items[j].Date)
+	})
+
+	var out []SimpleReportView
+	for _, r := range items {
+		out = append(out, SimpleReportView{
+			Name: r.Name,
+			URL:  r.URL,
+			Date: r.Date.Format("2006-01-02 15:04"),
+		})
+	}
+
+	return out, nil
+}
+
+func renderReports(w http.ResponseWriter, reports []SimpleReportView) {
+	const html = `
+<!doctype html>
+<html>
+<body>
+<h2>Load Test Reports</h2>
+<ul>
+{{range .}}
+<li><a href="{{.URL}}">{{.Name}}</a> - {{.Date}}</li>
+{{end}}
+</ul>
+</body>
+</html>`
+	tpl := template.Must(template.New("page").Parse(html))
+	tpl.Execute(w, reports)
+}
+
+/////////////////////////////////////////////////////////////
+// MONGO VIEWER
+/////////////////////////////////////////////////////////////
+
+func dbDataHandler(w http.ResponseWriter, r *http.Request) {
+
+	if mongoClient == nil {
+		http.Error(w, "Mongo not available", 500)
+		return
+	}
+
+	ctx := context.Background()
+	dbs, _ := mongoClient.ListDatabaseNames(ctx, bson.M{})
+
+	var db string
+	for _, d := range dbs {
+		if d != "admin" && d != "local" && d != "config" {
+			db = d
+			break
 		}
 	}
 
-	// Sort latest first
-	sort.Slice(reports, func(i, j int) bool {
-		t1, _ := time.Parse("2006-01-02 15:04", reports[i].Date)
-		t2, _ := time.Parse("2006-01-02 15:04", reports[j].Date)
-		return t2.Before(t1)
-	})
+	cols, _ := mongoClient.Database(db).ListCollectionNames(ctx, bson.M{})
 
-	return reports, nil
+	const html = `
+<html><body>
+<h2>MongoDB Collections ({{.DB}})</h2>
+<ul>
+{{range .Cols}}
+<li><a href="/db-data/collection?name={{.}}">{{.}}</a></li>
+{{end}}
+</ul>
+</body></html>`
+
+	tpl := template.Must(template.New("db").Parse(html))
+	tpl.Execute(w, map[string]interface{}{
+		"DB":   db,
+		"Cols": cols,
+	})
 }
 
-func renderReports(w http.ResponseWriter, reports []Report) {
+func dbCollectionHandler(w http.ResponseWriter, r *http.Request) {
+
+	if mongoClient == nil {
+		http.Error(w, "Mongo not available", 500)
+		return
+	}
+
+	name := r.URL.Query().Get("name")
+
+	ctx := context.Background()
+
+	dbs, _ := mongoClient.ListDatabaseNames(ctx, bson.M{})
+	db := dbs[0]
+
+	cur, _ := mongoClient.Database(db).Collection(name).
+		Find(ctx, bson.M{}, options.Find().SetLimit(50))
+
+	var docs []bson.M
+	cur.All(ctx, &docs)
+
+	out, _ := json.MarshalIndent(docs, "", "  ")
+	fmt.Fprintf(w, "<pre>%s</pre>", string(out))
+}
+
+/////////////////////////////////////////////////////////////
+// REDIS VIEWER
+/////////////////////////////////////////////////////////////
+
+func redisDataHandler(w http.ResponseWriter, r *http.Request) {
+
+	if redisClient == nil {
+		http.Error(w, "Redis not available", 500)
+		return
+	}
+
+	ctx := context.Background()
+	var cursor uint64
+	var keys []string
+
+	for {
+		k, c, _ := redisClient.Scan(ctx, cursor, "*", 100).Result()
+		cursor = c
+		keys = append(keys, k...)
+		if cursor == 0 {
+			break
+		}
+	}
+
 	const html = `
-	<html>
-		<head>
-			<title>Load Test Reports</title>
-			<style>
-				body { font-family: Arial, sans-serif; padding: 20px; }
-				table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-				th, td { padding: 10px; border: 1px solid #ccc; text-align: left; }
-				tr:hover { background-color: #f5f5f5; }
-				a { color: #007bff; text-decoration: none; }
-				a:hover { text-decoration: underline; }
-			</style>
-		</head>
-		<body>
-			<h2>📊 Load Test Reports</h2>
-			<table>
-				<tr><th>Date</th><th>Report</th></tr>
-				{{range .}}
-				<tr>
-					<td>{{.Date}}</td>
-					<td><a href="{{.URL}}" target="_blank">{{.Name}}</a></td>
-				</tr>
-				{{else}}
-				<tr><td colspan="2">No reports found</td></tr>
-				{{end}}
-			</table>
-		</body>
-	</html>`
-	tmpl := template.Must(template.New("reports").Parse(html))
-	tmpl.Execute(w, reports)
+<html><body>
+<h2>Redis Keys</h2>
+<ul>
+{{range .}}
+<li><a href="/redis-data/key?key={{.}}">{{.}}</a></li>
+{{end}}
+</ul>
+</body></html>`
+
+	tpl := template.Must(template.New("redis").Parse(html))
+	tpl.Execute(w, keys)
+}
+
+func redisKeyHandler(w http.ResponseWriter, r *http.Request) {
+
+	if redisClient == nil {
+		http.Error(w, "Redis not available", 500)
+		return
+	}
+
+	key := r.URL.Query().Get("key")
+
+	val, _ := redisClient.Get(context.Background(), key).Result()
+
+	fmt.Fprintf(w, "<pre>%s</pre>", val)
 }
