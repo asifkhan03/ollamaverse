@@ -14,9 +14,14 @@ metadata:
 spec:
   ingressClassName: alb
   rules:
+
+    # ------------------------------
+    # FRONTEND + LOADTEST VIEWER
+    # ------------------------------
     - host: aiops.asifahmadkhan.com
       http:
         paths:
+          # Frontend App
           - path: /
             pathType: Prefix
             backend:
@@ -24,6 +29,8 @@ spec:
                 name: ollamaverse-frontend-service
                 port:
                   number: 80
+
+          # Loadtest Viewer (reports)
           - path: /load-test
             pathType: Prefix
             backend:
@@ -32,6 +39,27 @@ spec:
                 port:
                   number: 80
 
+          # MongoDB viewer
+          - path: /db-data
+            pathType: Prefix
+            backend:
+              service:
+                name: loadtest-viewer
+                port:
+                  number: 80
+
+          # Redis viewer
+          - path: /redis-data
+            pathType: Prefix
+            backend:
+              service:
+                name: loadtest-viewer
+                port:
+                  number: 80
+
+    # ------------------------------
+    # BACKEND (Node.js API)
+    # ------------------------------
     - host: api.asifahmadkhan.com
       http:
         paths:
@@ -42,6 +70,10 @@ spec:
                 name: ollamaverse-backend-service
                 port:
                   number: 8080
+
+    # ------------------------------
+    # Python Ollama Service
+    # ------------------------------
     - host: ollama.asifahmadkhan.com
       http:
         paths:
@@ -52,6 +84,10 @@ spec:
                 name: ollamaverse-py-service
                 port:
                   number: 8000
+
+    # ------------------------------
+    # Token API
+    # ------------------------------
     - host: tokenapi.asifahmadkhan.com
       http:
         paths:
@@ -62,5 +98,3 @@ spec:
                 name: ollamaverse-tokenapi-service
                 port:
                   number: 9000
-
-
