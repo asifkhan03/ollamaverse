@@ -22,3 +22,9 @@ docker push 976193257685.dkr.ecr.ap-south-1.amazonaws.com/ollamaverse-tokenapi:3
 
 docker buildx build --platform linux/arm64 -t 976193257685.dkr.ecr.ap-south-1.amazonaws.com/ollamaverse-loadtest:1.0 .
 docker push 976193257685.dkr.ecr.ap-south-1.amazonaws.com/ollamaverse-loadtest:1.0
+
+docker buildx build --platform linux/arm64 -t 976193257685.dkr.ecr.ap-south-1.amazonaws.com/ollamaverse-loadtest-viewer:1.3 .
+docker push 976193257685.dkr.ecr.ap-south-1.amazonaws.com/ollamaverse-loadtest-viewer:1.3
+
+ docker buildx build --platform linux/arm64 -t 976193257685.dkr.ecr.ap-south-1.amazonaws.com/ollamaverse-loadtest-cron:1.7 .
+ docker push 976193257685.dkr.ecr.ap-south-1.amazonaws.com/ollamaverse-loadtest-cron:1.7

@@ -20,15 +20,19 @@ spec:
             - name: loadtest
               image: 976193257685.dkr.ecr.ap-south-1.amazonaws.com/ollamaverse-loadtest-cron:1.6
               env:
+                # --- AWS_REGION from ConfigMap ---
                 - name: AWS_REGION
-                  value: "ap-south-1"
+                  valueFrom:
+                    configMapKeyRef:
+                      # Reference the ConfigMap created in Step 1
+                      name: loadtest-config
+                      # Reference the key name within the ConfigMap
+                      key: aws_region 
+                # --- S3_BUCKET from ConfigMap ---
                 - name: S3_BUCKET
-                  value: "aiops-loadtest-reports"
-              # resources:
-              #   requests:
-              #     cpu: "200m"
-              #     memory: "256Mi"
-              #   limits:
-              #     cpu: "500m"
-              #     memory: "512Mi"
-
+                  valueFrom:
+                    configMapKeyRef:
+                      name: loadtest-config
+                      key: s3_bucket
+              # resources: (omitted for brevity)
+              # ...

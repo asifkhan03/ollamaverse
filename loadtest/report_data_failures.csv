@@ -1,0 +1,15 @@
+Method,Name,Error,Occurrences
+POST,TokenAPI /v1/chat/completions,HTTPError('429 Client Error: Too Many Requests for url: TokenAPI /v1/chat/completions'),58
+GET,Backend https://api.asifahmadkhan.com/auth/login,HTTPError('404 Client Error: Not Found for url: Backend https://api.asifahmadkhan.com/auth/login'),147
+GET,Backend https://api.asifahmadkhan.com/auth/signup,HTTPError('404 Client Error: Not Found for url: Backend https://api.asifahmadkhan.com/auth/signup'),147
+POST,TokenAPI /v1/chat/completions,HTTPError('401 Client Error: Unauthorized for url: TokenAPI /v1/chat/completions'),60
+GET,TokenAPI /v1/models,HTTPError('401 Client Error: Unauthorized for url: TokenAPI /v1/models'),60
+GET,TokenAPI /v1/health,HTTPError('401 Client Error: Unauthorized for url: TokenAPI /v1/health'),60
+GET,Frontend https://asifahmadkhan.com/signup.html,HTTPError('404 Client Error: Not Found for url: Frontend https://asifahmadkhan.com/signup.html'),96
+GET,Backend https://api.asifahmadkhan.com/ollama/info,HTTPError('404 Client Error: Not Found for url: Backend https://api.asifahmadkhan.com/ollama/info'),147
+GET,TokenAPI /v1/models,HTTPError('429 Client Error: Too Many Requests for url: TokenAPI /v1/models'),58
+GET,Frontend https://asifahmadkhan.com/index.html,HTTPError('404 Client Error: Not Found for url: Frontend https://asifahmadkhan.com/index.html'),96
+GET,Frontend https://asifahmadkhan.com/login.html,HTTPError('404 Client Error: Not Found for url: Frontend https://asifahmadkhan.com/login.html'),96
+POST,Ollama /ask,HTTPError('504 Server Error: Gateway Time-out for url: Ollama /ask'),45
+GET,Backend https://api.asifahmadkhan.com/ollama/stats,HTTPError('404 Client Error: Not Found for url: Backend https://api.asifahmadkhan.com/ollama/stats'),147
+GET,TokenAPI /v1/health,HTTPError('429 Client Error: Too Many Requests for url: TokenAPI /v1/health'),58

@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: loadtest-config
+  namespace: aiops  
+data:
+  aws_region: "ap-south-1"
+  s3_bucket: "aiops-loadtest-reports"

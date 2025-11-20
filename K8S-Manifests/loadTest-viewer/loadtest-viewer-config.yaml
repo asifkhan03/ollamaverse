@@ -1,0 +1,12 @@
+# 1. loadtest-viewer-config.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: loadtest-viewer-config
+  namespace: aiops
+data:
+  # Configuration for AWS/S3 access
+  aws_region: "ap-south-1"
+  s3_bucket: "aiops-loadtest-reports"
+  # Application port
+  app_port: "8080"
