@@ -13,6 +13,6 @@ COPY . .
 # Expose API port
 EXPOSE 5000
 
-# Run the backend
+# Run the backend server.js
 CMD ["node", "server.js"]
 
