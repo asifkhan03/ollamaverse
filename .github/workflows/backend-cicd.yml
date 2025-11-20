@@ -16,7 +16,7 @@ env:
 
 jobs:
   build-and-deploy:
-    runs-on: [self-hosted, linux, eks-runner]
+    runs-on: [self-hosted, Linux, ARM64]
 
     steps:
       - name: Checkout code
